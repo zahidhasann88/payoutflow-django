@@ -1,0 +1,62 @@
+# Dependencies and tooling configuration for the PayoutFlow API.
+# Runtime configuration lives in environment variables (see .env.example).
+
+[dependency-groups]
+runtime = [
+    "Django>=5.2,<6.0",
+    "djangorestframework>=3.16",
+    "djangorestframework-simplejwt>=5.5",
+    "django-filter>=25.1",
+    "django-cors-headers>=4.7",
+    "drf-spectacular>=0.28",
+    "psycopg[binary]>=3.2",
+    "dj-database-url>=3.0",
+    "python-dotenv>=1.1",
+    "gunicorn>=23.0",
+    "whitenoise>=6.8",
+]
+# Not installed into the runtime image; see the Dockerfile's --group runtime.
+dev = [
+    {include-group = "runtime"},
+    "pytest>=8.4",
+    "pytest-django>=4.11",
+    "ruff>=0.14",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes (unused imports/variables)
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "B",    # bugbear (likely bugs)
+    "C4",   # comprehensions
+    "DJ",   # Django-specific checks
+    "RUF",  # ruff-specific checks
+]
+ignore = [
+    "B008",    # function call in argument default - normal in DRF field definitions
+    "RUF012",  # mutable class attrs: Django Meta/DRF attribute lists are idiomatic
+    "RUF002",  # en/em dashes in docstrings are deliberate (never printed)
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Settings legitimately assign names conditionally and import late.
+"config/settings.py" = ["E402"]
+# Tests favour readability over import hygiene.
+"tests/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
